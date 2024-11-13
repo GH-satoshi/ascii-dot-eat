@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASCII DOT EAT GAME</title>
+    <style>
+        body {
+            font-family: monospace;
+            background-color: #000000;
+            color: #00ff00;
+        }
+    </style>
+</head>
+
+<body>
+    <pre id="game"></pre>
+    <p>矢印キーで人(P)を移動して、<br>「.」を集めてゴール(E)へ。<br>敵(X)に捕まらないように!</p>
+
+    <script>
+        // 迷路の定義
+        let maze = [
+            "+-+-+-+-+-+-+-+-+",
+            "|P . . . . . . E|",
+            "+ + +-+ +-+ +-+ +",
+            "| . |     | .   |",
+            "+ + + + +-+ + +-+",
+            "| .   |   . | . |",
+            "+-+-+ + +-+-+ + +",
+            "| . . |     | . |",
+            "+-+-+-+-+-+-+-+-+"
+        ];
+
+        // プレイヤーの初期位置
+        let playerPosition = { x: 1, y: 1 };
+        // ゴール位置
+        const goalPosition = { x: maze[0].length - 2, y: 1 };
+        // 残りのドット数
+        let dotsLeft = (maze.flat().join('').match(/\./g) || []).length;
+
+        // 敵キャラクターの初期設定
+        let enemies = [
+            { x: 2, y: 7 }, // 敵1の初期位置
+            { x: 14, y: 5 } // 敵2の初期位置
+        ];
+
+        // 敵の移動方向（ランダム）
+        const directions = [
+            { dx: -1, dy: 0 }, // 左
+            { dx: 1, dy: 0 },  // 右
+            { dx: 0, dy: -1 }, // 上
+            { dx: 0, dy: 1 }   // 下
+        ];
+
+        // ゲームの描画
+        function drawMaze() {
+            let display = "";
+            for (let y = 0; y < maze.length; y++) {
+                for (let x = 0; x < maze[y].length; x++) {
+                    if (x === playerPosition.x && y === playerPosition.y) {
+                        display += "P"; // プレイヤー
+                    } else if (enemies.some(e => e.x === x && e.y === y)) {
+                        display += "X"; // 敵
+                    } else {
+                        display += maze[y][x];
+                    }
+                }
+                display += "\n";
+            }
+            display += `残りドット数: ${dotsLeft}\n`;
+            document.getElementById("game").innerText = display;
+        }
+
+        // プレイヤーの移動処理
+        function movePlayer(dx, dy) {
+            const newX = playerPosition.x + dx;
+            const newY = playerPosition.y + dy;
+
+            const targetCell = maze[newY][newX];
+            if (targetCell === " " || targetCell === "." || targetCell === "E") {
+                if (targetCell === ".") {
+                    dotsLeft--;
+                }
+                // 移動先がゴールかチェック
+                if (targetCell === "E" && dotsLeft === 0) {
+                    alert("おめでとう！すべてのドットを集めてゴールに到着しました！");
+                    resetGame();
+                    return;
+                }
+
+                // プレイヤーを移動
+                playerPosition.x = newX;
+                playerPosition.y = newY;
+
+                // 移動先がドットの場合、ドットを消す
+                if (targetCell === ".") {
+                    maze[newY] = maze[newY].substring(0, newX) + " " + maze[newY].substring(newX + 1);
+                }
+
+                // プレイヤーがゴールに到達したがドットが残っている場合
+                if (targetCell === "E" && dotsLeft > 0) {
+                    alert("まだドットが残っています！すべて集めてからゴールに向かいましょう！");
+                }
+
+                drawMaze();
+                checkGameOver();
+            }
+        }
+
+        // 敵の移動処理
+        function moveEnemies() {
+            enemies.forEach(enemy => {
+                let possibleMoves = directions.filter(dir => {
+                    const newEx = enemy.x + dir.dx;
+                    const newEy = enemy.y + dir.dy;
+                    // 壁に当たらないか確認
+                    if (maze[newEy] && maze[newEy][newEx] && maze[newEy][newEx] !== "+" && maze[newEy][newEx] !== "|" && maze[newEy][newEx] !== "-") {
+                        return true;
+                    }
+                    return false;
+                });
+
+                if (possibleMoves.length > 0) {
+                    const move = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                    enemy.x += move.dx;
+                    enemy.y += move.dy;
+                }
+            });
+            drawMaze();
+            checkGameOver();
+        }
+
+        // ゲームオーバーのチェック
+        function checkGameOver() {
+            // プレイヤーが敵と同じ位置にいるか
+            if (enemies.some(e => e.x === playerPosition.x && e.y === playerPosition.y)) {
+                alert("ゲームオーバー！敵に捕まりました！");
+                resetGame();
+            }
+        }
+
+        // ゲームのリセット
+        function resetGame() {
+            // 迷路を再初期化
+            maze = [
+                "+-+-+-+-+-+-+-+-+",
+                "|P . . . . . . E|",
+                "+ + +-+ +-+ +-+ +",
+                "| . |     | .   |",
+                "+ + + +-+-+ + +-+",
+                "| .   |   . | . |",
+                "+-+-+ + +-+-+ + +",
+                "| . . |     | . |",
+                "+-+-+-+-+-+-+-+-+"
+            ];
+            playerPosition = { x: 1, y: 1 };
+            enemies = [
+                { x: 2, y: 7 },
+                { x: 14, y: 5 }
+            ];
+            dotsLeft = (maze.flat().join('').match(/\./g) || []).length;
+            drawMaze();
+        }
+
+        // キーボード入力の設定
+        document.addEventListener("keydown", (event) => {
+            switch (event.key) {
+                case "ArrowUp":
+                    movePlayer(0, -1);
+                    break;
+                case "ArrowDown":
+                    movePlayer(0, 1);
+                    break;
+                case "ArrowLeft":
+                    movePlayer(-1, 0);
+                    break;
+                case "ArrowRight":
+                    movePlayer(1, 0);
+                    break;
+            }
+        });
+
+        // 敵の移動タイマー（1秒ごと）
+        setInterval(moveEnemies, 1000);
+
+        // 初期描画
+        drawMaze();
+    </script>
+</body>
+</html>
