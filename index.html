@@ -21,7 +21,7 @@
         // 迷路の定義
         let maze = [
             "+-+-+-+-+-+-+-+-+",
-            "|S . . . . . . G|",
+            "|P . . . . . . G|",
             "+ + +-+ +-+ +-+ +",
             "| . |     | .   |",
             "+ + + + +-+ + +-+",
@@ -77,12 +77,12 @@
             const newY = playerPosition.y + dy;
 
             const targetCell = maze[newY][newX];
-            if (targetCell === " " || targetCell === "." || targetCell === "E") {
+            if (targetCell === " " || targetCell === "." || targetCell === "G") {
                 if (targetCell === ".") {
                     dotsLeft--;
                 }
                 // 移動先がゴールかチェック
-                if (targetCell === "E" && dotsLeft === 0) {
+                if (targetCell === "G" && dotsLeft === 0) {
                     alert("おめでとう！すべてのドットを集めてゴールに到着しました！");
                     resetGame();
                     return;
@@ -98,7 +98,7 @@
                 }
 
                 // プレイヤーがゴールに到達したがドットが残っている場合
-                if (targetCell === "E" && dotsLeft > 0) {
+                if (targetCell === "G" && dotsLeft > 0) {
                     alert("まだドットが残っています！すべて集めてからゴールに向かいましょう！");
                 }
 
@@ -144,7 +144,7 @@
             // 迷路を再初期化
             maze = [
                 "+-+-+-+-+-+-+-+-+",
-                "|S . . . . . . G|",
+                "|P . . . . . . G|",
                 "+ + +-+ +-+ +-+ +",
                 "| . |     | .   |",
                 "+ + + + +-+ + +-+",
